@@ -1,0 +1,92 @@
+---
+title: "Human and Economic cost of Weather Events across the United States"
+output: html_document
+---
+
+### Synopsis
+
+The U.S. National Oceanic and Atmospheric Administration's (NOAA) storm database was analyzed to determine the deadliest and costliest weather events across the United States.  Accross the United States the deadliest type of weather events are Tornadoes. They have killed 5,633 and injured 91,346. The costliest weather events are Floods costing 144.66 Billion in property damage and 5.66 Billion in crop damage.
+
+### Data Processing
+
+The data was read with the code shown below.  It was assumed that the PROPDMGEXP and the CROPDMGEXP represented the units of PROPDMGEXP and CROPDMGEXP as explained in the following table:
+
+| Unit             | Value      |
+| ---------------- |:----------:|
+| H                | Hundreds   |
+| K                | Thousands  |
+| M                | Millions   |
+| B                | Billions   |
+| Not Listed Above | 0          |
+
+```{r setoptions, echo=TRUE}
+library(knitr)
+library(ggplot2)
+library(reshape)
+library(R.utils, quietly=TRUE)
+opts_chunk$set(echo = TRUE)
+```
+
+```{r, cache=TRUE}
+bunzip2("repdata-data-StormData.csv.bz2", overwrite=TRUE, remove=FALSE)
+storm<-read.csv("repdata-data-StormData.csv") 
+
+damageToDollars<-function(damage, exp) {
+   if(exp=="H"){ # Hundreds
+      damage;
+   } else if(exp=="K") { #Thousands
+      damage *1000;
+   } else if (exp == "M"){ # Millions
+      damage * 1000000;
+   } else if (exp == "B") { # Billions
+      damage * 1000000000;
+   } else {
+      0;
+   }
+}
+
+storm$propDamageDollars<-mapply(damageToDollars, storm$PROPDMG, storm$PROPDMGEXP)
+
+storm$cropDamageDollars<-mapply(damageToDollars, storm$CROPDMG, storm$CROPDMGEXP)
+
+tidy<-aggregate(cbind(propDamageDollars, cropDamageDollars, FATALITIES,INJURIES) ~ EVTYPE, data=storm, FUN=sum)
+```
+
+### Results
+
+1. Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
+```{r}
+topHealthDamage<-tidy[order(-tidy$FATALITIES),][1:15, c(1,4:5)]
+restHealth<-data.frame(EVTYPE="OTHERS", FATALITIES=sum(tidy$FATALITIES[16:length(tidy$FATALITIES)]), INJURIES=sum(tidy$INJURIES[16:length(tidy$INJURIES)])  )
+topHealthDamage<-rbind(topHealthDamage, restHealth)
+topHealthDamage2<-melt(topHealthDamage, id=c("EVTYPE"))
+```
+
+```{r}
+ggplot(data=topHealthDamage2, aes(reorder(EVTYPE, value), y=value, fill=variable)) + geom_bar(stat="identity")+ theme(axis.text.x = element_text(angle = 90, hjust = 1)) + guides(fill = guide_legend(title = "Type of damage")) + xlab("Weather Event Type")  + ylab("Number of people") + ggtitle("Number of People Affected by Weather Event Type")
+```
+
+The deadliest weather events across the United States are:
+```{r}
+topHealthDamage
+```
+
+2. Across the United States, which types of events have the greatest economic consequences?
+```{r}
+topPropDamage<-tidy[order(-tidy$propDamageDollars),][1:15, 1:3]
+restProp<-data.frame(EVTYPE="OTHERS", propDamageDollars=sum(tidy$propDamageDollars[16:length(tidy$propDamageDollars)]), cropDamageDollars=sum(tidy$cropDamageDollars[16:length(tidy$cropDamageDollars)]))
+topPropDamage<-rbind(topPropDamage, restProp)
+topPropDamage2<-melt(topPropDamage, id=c("EVTYPE"))
+```
+
+```{r}
+ggplot(data=topPropDamage2, aes(reorder(EVTYPE, value), y=value, fill=factor(variable, labels = c("PROPERTY", "CROP")))) + geom_bar(stat="identity")+ theme(axis.text.x = element_text(angle = 90, hjust = 1)) + guides(fill = guide_legend(title = "Type of damage")) + xlab("Weather Event Type")  + ylab("Dollar Amount") + ggtitle("Damage in Dollars by Weather Event Type")
+```
+
+The costliest weather events across the United States are:
+```{r}
+topPropDamage
+```
+```{r, echo=FALSE, results=FALSE}
+#Accross the United States the most deadly type of weather events are `r topHealthDamage[topHealthDamage$variable=="INJURIES",][1,]$EVTYPE`.  They have killed `r topHealthDamage[topHealthDamage$variable=="FATALITIES",][1,]$value` and injured `r topHealthDamage[topHealthDamage$variable=="INJURIES",][1,]$value`.  The most costly weather events are `r topPropDamage[topPropDamage$variable=="propDamageDollars",][1,]$EVTYPE` costing `r topPropDamage[topPropDamage$variable=="propDamageDollars",][1,]$value` in property damage and `r topPropDamage[topPropDamage$variable=="cropDamageDollars",][1,]$value` in crop damage.
+```
