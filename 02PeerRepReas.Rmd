@@ -33,9 +33,9 @@ storm<-read.csv("repdata-data-StormData.csv")
 
 damageToDollars<-function(damage, exp) {
    if(exp=="H"){ # Hundreds
-      damage;
+      damage * 100;
    } else if(exp=="K") { #Thousands
-      damage *1000;
+      damage * 1000;
    } else if (exp == "M"){ # Millions
       damage * 1000000;
    } else if (exp == "B") { # Billions
@@ -88,5 +88,5 @@ The costliest weather events across the United States are:
 topPropDamage
 ```
 ```{r, echo=FALSE, results=FALSE}
-#Accross the United States the most deadly type of weather events are `r topHealthDamage[topHealthDamage$variable=="INJURIES",][1,]$EVTYPE`.  They have killed `r topHealthDamage[topHealthDamage$variable=="FATALITIES",][1,]$value` and injured `r topHealthDamage[topHealthDamage$variable=="INJURIES",][1,]$value`.  The most costly weather events are `r topPropDamage[topPropDamage$variable=="propDamageDollars",][1,]$EVTYPE` costing `r topPropDamage[topPropDamage$variable=="propDamageDollars",][1,]$value` in property damage and `r topPropDamage[topPropDamage$variable=="cropDamageDollars",][1,]$value` in crop damage.
+#Accross the United States the most deadly type of weather events are `r topHealthDamage[1,]$EVTYPE`.  They have killed `r topHealthDamage[1,]$FATALITIES` and injured `r topHealthDamage[1,]$INJURIES`.  The most costly weather events are `r topPropDamage[1,]$EVTYPE` costing `r topPropDamage[1,]$propDamageDollars` in property damage and `r topPropDamage[1,]$cropDamageDollars` in crop damage.
 ```

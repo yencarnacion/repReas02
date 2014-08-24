@@ -1,0 +1,6 @@
+== Peer Assessment 2 for Coursera Reproducible Research Course
+The basic goal of this assignment was to explore the NOAA Storm Database and answer some basic questions about severe weather events. 
+
+.The data analysis addressed the following questions:
+. Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
+. Across the United States, which types of events have the greatest economic consequences?
